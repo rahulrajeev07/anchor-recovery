@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { X, Save, User, Phone, ShieldCheck, Heart } from 'lucide-react';
 import { EmergencyContact } from '../types';
+import { Translations } from '../utils/translations';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   contacts: EmergencyContact;
   onSaveContacts: (contacts: EmergencyContact) => void;
+  t: Translations;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -14,6 +16,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   contacts,
   onSaveContacts,
+  t,
 }) => {
   const [formData, setFormData] = useState<EmergencyContact>(contacts);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -45,9 +48,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-white">Emergency Contacts</h3>
+            <h3 className="text-xl font-bold text-white">{t.settingsTitle}</h3>
             <p className="text-xs text-slate-400">
-              Preset your sponsor or caregiver phone numbers for 1-tap SMS scripts.
+              {t.settingsSubtitle}
             </p>
           </div>
         </div>
@@ -56,12 +59,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Sponsor Details */}
           <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3">
             <h4 className="text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5" /> Sponsor / Peer Specialist
+              <User className="w-3.5 h-3.5" /> {t.sponsorHeading}
             </h4>
 
             <div>
               <label className="text-xs text-slate-400 font-medium block mb-1">
-                Sponsor Name
+                {t.sponsorNameLabel}
               </label>
               <input
                 type="text"
@@ -74,7 +77,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <div>
               <label className="text-xs text-slate-400 font-medium block mb-1">
-                Sponsor Phone Number
+                {t.sponsorPhoneLabel}
               </label>
               <input
                 type="tel"
@@ -89,12 +92,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Caregiver Details */}
           <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3">
             <h4 className="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Heart className="w-3.5 h-3.5" /> Caregiver / Emergency Contact
+              <Heart className="w-3.5 h-3.5" /> {t.caregiverHeading}
             </h4>
 
             <div>
               <label className="text-xs text-slate-400 font-medium block mb-1">
-                Caregiver Name
+                {t.caregiverNameLabel}
               </label>
               <input
                 type="text"
@@ -107,7 +110,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <div>
               <label className="text-xs text-slate-400 font-medium block mb-1">
-                Caregiver Phone Number
+                {t.caregiverPhoneLabel}
               </label>
               <input
                 type="tel"
@@ -124,7 +127,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             className="w-full py-3.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-sky-600/30 transition-all"
           >
             <Save className="w-4 h-4" />
-            <span>{savedSuccess ? 'Contacts Saved!' : 'Save Contacts'}</span>
+            <span>{savedSuccess ? t.savedContacts : t.saveContacts}</span>
           </button>
         </form>
       </div>

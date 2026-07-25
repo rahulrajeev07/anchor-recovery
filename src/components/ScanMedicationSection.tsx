@@ -1,7 +1,13 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Upload, Sparkles, AlertCircle, CheckCircle2, Volume2, RefreshCw, Eye, ShieldCheck, FileText } from 'lucide-react';
+import { Camera, Upload, CheckCircle2, Volume2, Eye, AlertCircle } from 'lucide-react';
 import { ScanResult } from '../types';
 import { speakGroundingPrompt } from '../utils/audioSynth';
+import { Translations, Language } from '../utils/translations';
+
+interface ScanMedicationProps {
+  t: Translations;
+  language: Language;
+}
 
 // Preset sample images for 1-tap testing
 const SAMPLE_IMAGES = [
@@ -25,7 +31,7 @@ const SAMPLE_IMAGES = [
   }
 ];
 
-export const ScanMedicationSection: React.FC = () => {
+export const ScanMedicationSection: React.FC<ScanMedicationProps> = ({ t, language }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
@@ -37,15 +43,22 @@ export const ScanMedicationSection: React.FC = () => {
     setIsScanning(true);
     setErrorMessage(null);
 
+    // Abort API requests if they take longer than 8 seconds
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
     try {
       const response = await fetch('/api/scan-environment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           image: base64Image,
-          userNotes: notes
+          userNotes: notes,
+          language: language
         }),
       });
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error('Failed to reach analysis server');
@@ -60,6 +73,7 @@ export const ScanMedicationSection: React.FC = () => {
         speakGroundingPrompt(`${data.identifiedItem}. Key action: ${firstTwo}`);
       }
     } catch (err: any) {
+      clearTimeout(timeoutId);
       console.error('Scan analysis error:', err);
       // Fallback
       setScanResult({
@@ -93,8 +107,13 @@ export const ScanMedicationSection: React.FC = () => {
   };
 
   const convertUrlToBase64 = async (url: string): Promise<string> => {
+    // Abort API requests if they take longer than 8 seconds
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
       const blob = await response.blob();
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -103,6 +122,7 @@ export const ScanMedicationSection: React.FC = () => {
         reader.readAsDataURL(blob);
       });
     } catch {
+      clearTimeout(timeoutId);
       return url;
     }
   };
@@ -124,10 +144,10 @@ export const ScanMedicationSection: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <span className="text-xs font-semibold tracking-wider text-teal-400 uppercase flex items-center gap-1.5 mb-1">
-            <Camera className="w-3.5 h-3.5" /> Action 3 • Multimodal Analysis
+            <Camera className="w-3.5 h-3.5" /> {t.scanTag}
           </span>
           <h2 className="text-xl sm:text-2xl font-bold text-slate-100 tracking-tight">
-            Scan Medication / Environment
+            {t.scanHeading}
           </h2>
         </div>
       </div>
@@ -151,10 +171,10 @@ export const ScanMedicationSection: React.FC = () => {
             </div>
 
             <h3 className="text-base font-bold text-slate-100 mb-1">
-              Upload or Snap Photo
+              {t.uploadTitle}
             </h3>
             <p className="text-xs text-slate-400 max-w-xs mb-4">
-              Naloxone boxes, pill labels, or room surroundings. Get immediate 1-tap bulleted action steps.
+              {t.uploadDesc}
             </p>
 
             <button
@@ -163,7 +183,7 @@ export const ScanMedicationSection: React.FC = () => {
               className="w-full sm:w-auto px-5 py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-teal-600/25 transition-all min-h-[48px]"
             >
               <Upload className="w-4 h-4" />
-              <span>Select or Take Photo</span>
+              <span>{t.uploadBtn}</span>
             </button>
           </div>
         </div>
@@ -172,7 +192,7 @@ export const ScanMedicationSection: React.FC = () => {
         <div className="md:col-span-6 bg-slate-950/80 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
           <div>
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">
-              Or Test Instant Presets (1-Tap)
+              {t.presetsTitle}
             </span>
             <div className="grid grid-cols-1 gap-2.5">
               {SAMPLE_IMAGES.map((sample) => (
@@ -206,10 +226,10 @@ export const ScanMedicationSection: React.FC = () => {
         <div className="p-6 bg-slate-950 border border-teal-800/60 rounded-2xl text-center space-y-3 animate-pulse">
           <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto" />
           <h4 className="text-base font-bold text-teal-300">
-            Analyzing Image with AI Multimodal Vision...
+            {t.analyzingTitle}
           </h4>
           <p className="text-xs text-slate-400">
-            Extracting immediate life-saving action steps and safety precautions.
+            {t.analyzingDesc}
           </p>
         </div>
       )}
@@ -229,7 +249,7 @@ export const ScanMedicationSection: React.FC = () => {
               )}
               <div>
                 <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Identified Item
+                  {t.identifiedItemLabel}
                 </span>
                 <h3 className="text-lg sm:text-xl font-bold text-white leading-tight">
                   {scanResult.identifiedItem}
@@ -243,7 +263,7 @@ export const ScanMedicationSection: React.FC = () => {
                   ? 'bg-rose-950/80 text-rose-300 border-rose-800'
                   : 'bg-amber-950/80 text-amber-300 border-amber-800'
               }`}>
-                Urgency: {scanResult.urgency || 'high'}
+                {t.urgencyLabel}: {scanResult.urgency || 'high'}
               </span>
 
               <button
@@ -255,7 +275,7 @@ export const ScanMedicationSection: React.FC = () => {
                 title="Read steps out loud"
               >
                 <Volume2 className="w-4 h-4" />
-                <span className="hidden xs:inline">Read Aloud</span>
+                <span className="hidden xs:inline">{t.readAloud}</span>
               </button>
             </div>
           </div>
@@ -264,7 +284,7 @@ export const ScanMedicationSection: React.FC = () => {
           <div>
             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              Immediate Action Steps
+              {t.immediateActionSteps}
             </h4>
 
             <div className="space-y-2.5">

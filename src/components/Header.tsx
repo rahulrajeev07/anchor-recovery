@@ -1,16 +1,23 @@
 import React from 'react';
-import { ShieldAlert, Settings, Activity, Volume2, HeartHandshake } from 'lucide-react';
+import { ShieldAlert, Settings, Volume2, Globe } from 'lucide-react';
+import { Language, Translations } from '../utils/translations';
 
 interface HeaderProps {
   onOpenSettings: () => void;
   isAudioMuted: boolean;
   onToggleAudio: () => void;
+  language: Language;
+  onLanguageChange: (lang: Language) => void;
+  t: Translations;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenSettings,
   isAudioMuted,
   onToggleAudio,
+  language,
+  onLanguageChange,
+  t,
 }) => {
   return (
     <header className="w-full bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-30 px-4 py-3 sm:px-6">
@@ -25,25 +32,41 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-100 flex items-center gap-1.5">
-                Anchor <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-sky-950/80 text-sky-300 border border-sky-800/50 hidden sm:inline-block">Recovery</span>
+                {t.appName} <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-sky-950/80 text-sky-300 border border-sky-800/50 hidden sm:inline-block">{t.appBadge}</span>
               </h1>
             </div>
             <p className="text-xs text-slate-400 font-medium hidden sm:block">
-              Zero-Typing De-escalation & Crisis Intervention
+              {t.appSubtitle}
             </p>
           </div>
         </div>
 
         {/* Calm Status & Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Subtle Calm Status Indicator */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-medium">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="hidden xs:inline">Connected & Ready</span>
-            <span className="xs:hidden">Ready</span>
+          {/* Language Quick Toggle Switcher */}
+          <div className="flex items-center bg-slate-950/90 border border-slate-800 rounded-xl p-0.5">
+            <button
+              onClick={() => onLanguageChange('en')}
+              className={`px-2 py-1 text-xs font-bold rounded-lg transition-all ${
+                language === 'en'
+                  ? 'bg-sky-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="Switch to English"
+            >
+              EN
+            </button>
+            <button
+              onClick={() => onLanguageChange('ml')}
+              className={`px-2 py-1 text-xs font-bold rounded-lg transition-all ${
+                language === 'ml'
+                  ? 'bg-sky-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="മലയാളത്തിലേക്ക് മാറ്റുക"
+            >
+              മലയാളം
+            </button>
           </div>
 
           {/* Mute/Unmute Quick Toggle */}
@@ -54,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
                 ? 'bg-slate-800/60 border-slate-700 text-slate-400 hover:bg-slate-800'
                 : 'bg-sky-950/40 border-sky-800/60 text-sky-300 hover:bg-sky-900/40'
             }`}
-            title={isAudioMuted ? "Audio Muted - Tap to enable voice grounding" : "Audio Active"}
+            title={isAudioMuted ? t.audioMutedTooltip : t.audioActiveTooltip}
             aria-label="Toggle grounding audio"
           >
             <Volume2 className={`w-4 h-4 ${isAudioMuted ? 'opacity-40' : 'text-sky-400'}`} />
@@ -64,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onOpenSettings}
             className="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/80 text-slate-300 hover:text-white hover:bg-slate-700/80 transition-colors"
-            title="Configure Emergency Contacts & Settings"
+            title={t.settingsTitle}
             aria-label="Settings"
           >
             <Settings className="w-4 h-4" />

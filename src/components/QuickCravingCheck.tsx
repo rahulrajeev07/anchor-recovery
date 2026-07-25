@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
-import { Activity, Flame, ShieldAlert, Sparkles, Check } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { speakGroundingPrompt } from '../utils/audioSynth';
+import { Translations } from '../utils/translations';
 
-export const QuickCravingCheck: React.FC = () => {
+interface QuickCravingCheckProps {
+  t: Translations;
+}
+
+export const QuickCravingCheck: React.FC<QuickCravingCheckProps> = ({ t }) => {
   const [cravingLevel, setCravingLevel] = useState<number | null>(null);
 
   const handleSelectLevel = (level: number) => {
     setCravingLevel(level);
 
     if (level >= 8) {
-      speakGroundingPrompt("High distress detected. Tap the center de-escalation button or text 988 immediately. You are not alone.");
+      speakGroundingPrompt(t.highDistressPrompt);
     } else if (level >= 5) {
-      speakGroundingPrompt("Moderate craving logged. Take 3 deep breaths and send your Sponsor text script.");
+      speakGroundingPrompt(t.medDistressPrompt);
     } else {
-      speakGroundingPrompt("Mild craving noted. Stay anchored, drink water, and keep breathing.");
+      speakGroundingPrompt(t.lowDistressPrompt);
     }
   };
 
@@ -22,10 +27,10 @@ export const QuickCravingCheck: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
         <div>
           <span className="text-[11px] font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1">
-            <Activity className="w-3.5 h-3.5" /> 1-Tap Distress & Craving Assessment
+            <Activity className="w-3.5 h-3.5" /> {t.assessmentTag}
           </span>
           <h3 className="text-sm sm:text-base font-bold text-slate-200">
-            Current Craving / Distress Level (1 - 10)
+            {t.assessmentHeading}
           </h3>
         </div>
 
@@ -37,7 +42,7 @@ export const QuickCravingCheck: React.FC = () => {
               ? 'bg-amber-950 text-amber-300 border-amber-800'
               : 'bg-emerald-950 text-emerald-300 border-emerald-800'
           }`}>
-            Logged Level: {cravingLevel}/10
+            {t.loggedLevel}: {cravingLevel}/10
           </span>
         )}
       </div>

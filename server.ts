@@ -1,4 +1,5 @@
 import express from "express";
+import compression from "compression";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
@@ -9,6 +10,7 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+app.use(compression());
 app.use(express.json({ limit: "15mb" }));
 
 // Initialize Gemini Client
@@ -28,11 +30,13 @@ const getGeminiClient = () => {
 // API Endpoint 1: Scan Medication / Environment with Multimodal Gemini
 app.post("/api/scan-environment", async (req, res) => {
   try {
-    const { image, mimeType, userNotes } = req.body;
+    const { image, mimeType, userNotes, language } = req.body;
 
     if (!image) {
       return res.status(400).json({ error: "No image payload provided" });
     }
+
+    const isMalayalam = language === 'ml';
 
     // Extract raw base64 data if data URL is provided
     let base64Data = image;
@@ -53,17 +57,22 @@ app.post("/api/scan-environment", async (req, res) => {
       // Intelligent fallback when GEMINI_API_KEY is not set
       console.log("Gemini API key not found, using fallback recognition");
       return res.json({
-        identifiedItem: "Naloxone (Narcan) Nasal Spray / Recovery Kit",
+        identifiedItem: isMalayalam ? "നാലോക്സോൺ (നാര്കാൻ) സ്പ്രേ / റിക്കവറി കിറ്റ്" : "Naloxone (Narcan) Nasal Spray / Recovery Kit",
         urgency: "high",
         confidence: "High (Preset Mode)",
-        actionSteps: [
+        actionSteps: isMalayalam ? [
+          "1. പ്രതികരണം പരിശോധിക്കുക: തോളിൽ തട്ടി പേര് ഉറക്കെ വിളിക്കുക.",
+          "2. പാക്കറ്റ് തുറന്ന് മൂക്കിലേക്ക് സ്പ്രേ നോസില് വയ്ക്കുക.",
+          "3. 4mg ഡോസ് ലഭിക്കാൻ പ്ലഞ്ചർ അമർത്തുക.",
+          "4. ഉടൻ തന്നെ 911 / അടിയന്തര സഹായത്തിനായി വിളിക്കുക. വ്യക്തിയെ വശത്തേക്ക് തിരിച്ചു കിടത്തുക."
+        ] : [
           "1. Check for response: Shake shoulders and call name loudly.",
           "2. Peel packet back and remove nozzle. Insert tip into one nostril.",
           "3. Press plunger firmly until it clicks to release 4mg dose.",
           "4. CALL 911 IMMEDIATELY. Stay with person & place in Recovery Position (on side)."
         ],
-        safetyWarning: "If person does not wake up in 2-3 minutes, administer second dose in opposite nostril.",
-        medicalDisclaimer: "This tool provides immediate zero-typing crisis assistance. Always call 911 for medical emergencies."
+        safetyWarning: isMalayalam ? "2-3 മിനിറ്റിനുള്ളിൽ പ്രതികരണമില്ലെങ്കിൽ രണ്ടാമത്തെ ഡോസ് അടുത്ത മൂക്കിൽ നൽകുക." : "If person does not wake up in 2-3 minutes, administer second dose in opposite nostril.",
+        medicalDisclaimer: isMalayalam ? "ഇതൊരു എമർജൻസി എ.ഐ അസിസ്റ്റന്റാണ്. ഉടൻ സഹായം തേടുക." : "This tool provides immediate zero-typing crisis assistance. Always call 911 for medical emergencies."
       });
     }
 
@@ -74,6 +83,8 @@ Analyze this photograph which may depict:
 - Prescription medication bottle, blister pack, or pills
 - Substance packaging or harm reduction materials
 - Immediate physical environment / surroundings
+
+${isMalayalam ? "IMPORTANT: Provide all string values ('identifiedItem', 'actionSteps', 'safetyWarning', 'medicalDisclaimer') strictly in clean, clear, natural Malayalam language (മലയാളത്തിൽ)." : "Provide all strings in English."}
 
 Your job is to provide immediate, zero-clutter, life-saving 3 to 4 bulleted action steps.
 Output MUST be valid JSON in this exact structure:
@@ -119,15 +130,19 @@ ${userNotes ? `User note: ${userNotes}` : ""}
       parsedResult = JSON.parse(responseText);
     } catch {
       parsedResult = {
-        identifiedItem: "Scanned Item Analysis",
+        identifiedItem: isMalayalam ? "സ്കാൻ ചെയ്ത വസ്തു" : "Scanned Item Analysis",
         urgency: "medium",
         confidence: "Medium",
-        actionSteps: [
+        actionSteps: isMalayalam ? [
+          "വസ്തു വിജയകരമായി സ്കാൻ ചെയ്തു.",
+          "നാലോക്സോൺ (നാര്കാൻ) അടുത്തു സൂക്ഷിക്കുക.",
+          "ബുദ്ധിമുട്ട് അനുഭവപ്പെട്ടാൽ 911 അല്ലെങ്കിൽ 988 ലേക്ക് ബന്ധപ്പെടുക."
+        ] : [
           "Item scanned successfully.",
           "Keep Naloxone / Narcan nearby if experiencing or witnessing a crisis.",
           "Call 911 or text 988 immediately if you feel unwell or unsafe."
         ],
-        safetyWarning: "If anyone is unresponsive or unbreathing, call 911 immediately.",
+        safetyWarning: isMalayalam ? "ആർക്കെങ്കിലും ശ്വാസമെടുക്കാൻ ബുദ്ധിമുട്ടുണ്ടെങ്കിൽ ഉടൻ 911 വിളിക്കുക." : "If anyone is unresponsive or unbreathing, call 911 immediately.",
         medicalDisclaimer: "Anchor crisis platform safety assistant."
       };
     }
@@ -154,28 +169,46 @@ ${userNotes ? `User note: ${userNotes}` : ""}
 // API Endpoint 2: AI Grounding De-escalation Prompt Generator
 app.post("/api/generate-grounding", async (req, res) => {
   try {
-    const { feeling, intensity } = req.body;
+    const { feeling, intensity, language } = req.body;
+    const isMalayalam = language === 'ml';
     const ai = getGeminiClient();
 
     if (!ai) {
       return res.json({
-        prompt: "Take a deep breath. Focus on 3 things you can feel around you right now. You are safe."
+        prompt: isMalayalam 
+          ? "ദീർഘശ്വാസമെടുക്കുക. നിങ്ങളുടെ ചുറ്റുമുള്ള 3 കാര്യങ്ങളിൽ ശ്രദ്ധ കേന്ദ്രീകരിക്കുക. നിങ്ങൾ സുരക്ഷിതനാണ്."
+          : "Take a deep breath. Focus on 3 things you can feel around you right now. You are safe."
       });
     }
 
     const response = await ai.models.generateContent({
       model: "gemini-3.6-flash",
       contents: `Generate a calming, ultra-concise exactly 15-word grounding prompt for someone having intense cravings or panic (${feeling || 'craving'}, intensity ${intensity || 8}/10).
-Example format: 'Take a deep breath. Focus on 3 things you can feel around you right now. You are safe.'
+${isMalayalam ? "IMPORTANT: Return the response strictly in clear, natural Malayalam language (മലയാളത്തിൽ)." : "Return in English."}
 Return ONLY the text prompt, exactly around 15 words.`,
     });
 
-    return res.json({ prompt: response.text?.trim() || "Take a deep breath. Focus on 3 things you can feel around you right now. You are safe." });
+    return res.json({
+      prompt: response.text?.trim() || (isMalayalam 
+        ? "ദീർഘശ്വാസമെടുക്കുക. നിങ്ങളുടെ ചുറ്റുമുള്ള 3 കാര്യങ്ങളിൽ ശ്രദ്ധ കേന്ദ്രീകരിക്കുക. നിങ്ങൾ സുരക്ഷിതനാണ്."
+        : "Take a deep breath. Focus on 3 things you can feel around you right now. You are safe.")
+    });
   } catch {
     return res.json({
-      prompt: "Take a deep breath. Focus on 3 things you can feel around you right now. You are safe."
+      prompt: req.body.language === 'ml' 
+        ? "ദീർഘശ്വാസമെടുക്കുക. നിങ്ങളുടെ ചുറ്റുമുള്ള 3 കാര്യങ്ങളിൽ ശ്രദ്ധ കേന്ദ്രീകരിക്കുക. നിങ്ങൾ സുരക്ഷിതനാണ്."
+        : "Take a deep breath. Focus on 3 things you can feel around you right now. You are safe."
     });
   }
+});
+
+// Express Global Error Handler
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('[Anchor Server Error]:', err.stack);
+  res.status(500).json({ 
+    error: 'Internal Server Error', 
+    message: err.message || 'An unexpected error occurred during crisis response generation.' 
+  });
 });
 
 // Setup Vite Development or Production Server

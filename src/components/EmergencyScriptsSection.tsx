@@ -1,85 +1,87 @@
 import React, { useState } from 'react';
-import { Copy, Check, Send, AlertTriangle, UserCheck, HeartPulse, ShieldAlert, FileText, ChevronRight, Phone } from 'lucide-react';
+import { Copy, Check, Send, AlertTriangle, UserCheck, HeartPulse, ShieldAlert, FileText, ChevronRight } from 'lucide-react';
 import { EmergencyContact, ScriptOption } from '../types';
+import { Translations } from '../utils/translations';
 
 interface EmergencyScriptsProps {
   contacts: EmergencyContact;
+  t: Translations;
 }
 
-const FOR_ME_SCRIPTS: ScriptOption[] = [
-  {
-    id: 'sponsor_craving',
-    title: 'Distress / Craving Alert',
-    recipientLabel: 'Sponsor / Trusted Contact',
-    defaultNumber: '',
-    text: "I am experiencing an intense craving/distress right now and need support. Please call or text me as soon as you get this.",
-    instructions: [
-      'Script automatically copied to your clipboard.',
-      'Tap "Send SMS" to open your messaging app with pre-filled text.',
-      'While waiting: Drink cold water and start 4-7-8 breathing.',
-      'If you do not get a reply in 5 minutes, call 988 directly.'
-    ]
-  },
-  {
-    id: 'safety_plan',
-    title: 'Sponsor Safety Plan Check-In',
-    recipientLabel: 'Sponsor / Peer Specialist',
-    defaultNumber: '',
-    text: "Hey, I am reaching out because I'm in a high-risk situation right now and need to review my recovery safety plan with you.",
-    instructions: [
-      'Script copied to clipboard.',
-      'Step away from any triggering environment or people immediately.',
-      'Place your hand on your heart and focus on slow exhales.'
-    ]
-  },
-  {
-    id: 'crisis_988',
-    title: '988 Crisis Line Text',
-    recipientLabel: '988 Suicide & Crisis Lifeline',
-    defaultNumber: '988',
-    text: "I need immediate support right now for recovery and intense substance use cravings.",
-    instructions: [
-      'Script copied. Texting 988 is free, confidential, and available 24/7.',
-      'A trained crisis counselor will respond within minutes.',
-      'Stay in a safe, quiet room while texting.'
-    ]
-  }
-];
-
-const FOR_CAREGIVER_SCRIPTS: ScriptOption[] = [
-  {
-    id: 'overdose_alert',
-    title: 'Overdose Emergency Alert',
-    recipientLabel: 'Emergency Contact / 911',
-    defaultNumber: '',
-    text: "EMERGENCY: Overdose suspected at my location. Calling 911 now and preparing Naloxone (Narcan).",
-    instructions: [
-      'STEP 1: Call 911 IMMEDIATELY. Tell dispatch: "Unresponsive person, suspected overdose."',
-      'STEP 2: Peel Naloxone (Narcan) pack, insert nozzle into nostril, press plunger firmly.',
-      'STEP 3: Turn person onto their left side in RECOVERY POSITION to prevent choking.',
-      'STEP 4: If no response in 2-3 minutes, administer 2nd dose in other nostril.'
-    ]
-  },
-  {
-    id: 'naloxone_given',
-    title: 'Naloxone Administered Update',
-    recipientLabel: 'Family / Support Network',
-    defaultNumber: '',
-    text: "ALERT: 1 dose of Naloxone (Narcan) nasal spray has been administered. 911 has been contacted and paramedics are en route.",
-    instructions: [
-      'Stay with the person at all times until paramedics arrive.',
-      'Keep airway clear and perform rescue breathing if trained.',
-      'Naloxone wears off in 30-90 minutes; medical evaluation is essential.'
-    ]
-  }
-];
-
-export const EmergencyScriptsSection: React.FC<EmergencyScriptsProps> = ({ contacts }) => {
+export const EmergencyScriptsSection: React.FC<EmergencyScriptsProps> = ({ contacts, t }) => {
   const [activeTab, setActiveTab] = useState<'for_me' | 'for_caregiver'>('for_me');
-  const [selectedScriptId, setSelectedScriptId] = useState<string>(FOR_ME_SCRIPTS[0].id);
+  const [selectedScriptId, setSelectedScriptId] = useState<string>('sponsor_craving');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const currentScripts = activeTab === 'for_me' ? FOR_ME_SCRIPTS : FOR_CAREGIVER_SCRIPTS;
+  const getForMeScripts = (): ScriptOption[] => [
+    {
+      id: 'sponsor_craving',
+      title: t.scriptSponsorCravingTitle,
+      recipientLabel: 'Sponsor / Trusted Contact',
+      defaultNumber: '',
+      text: t.scriptSponsorCravingText,
+      instructions: [
+        'Script automatically copied to your clipboard.',
+        'Tap "Send SMS" to open messaging with pre-filled text.',
+        'Drink cold water and start 4-7-8 breathing.',
+        'If no reply in 5 minutes, call 988 directly.'
+      ]
+    },
+    {
+      id: 'safety_plan',
+      title: t.scriptSafetyPlanTitle,
+      recipientLabel: 'Sponsor / Peer Specialist',
+      defaultNumber: '',
+      text: t.scriptSafetyPlanText,
+      instructions: [
+        'Script copied to clipboard.',
+        'Step away from any triggering environment immediately.',
+        'Place hand on heart and focus on slow exhales.'
+      ]
+    },
+    {
+      id: 'crisis_988',
+      title: t.script988Title,
+      recipientLabel: '988 Lifeline',
+      defaultNumber: '988',
+      text: t.script988Text,
+      instructions: [
+        'Texting 988 is free, confidential, and 24/7.',
+        'A trained crisis counselor will respond quickly.',
+        'Stay in a safe, quiet room.'
+      ]
+    }
+  ];
+
+  const getForCaregiverScripts = (): ScriptOption[] => [
+    {
+      id: 'overdose_alert',
+      title: t.scriptOverdoseTitle,
+      recipientLabel: 'Emergency Contact / 911',
+      defaultNumber: '',
+      text: t.scriptOverdoseText,
+      instructions: [
+        'STEP 1: Call 911 IMMEDIATELY. State: "Unresponsive person, suspected overdose."',
+        'STEP 2: Administer Naloxone (Narcan) nasal spray into nostril.',
+        'STEP 3: Turn person onto their side in RECOVERY POSITION.',
+        'STEP 4: If no response in 2-3 minutes, administer 2nd dose.'
+      ]
+    },
+    {
+      id: 'naloxone_given',
+      title: t.scriptNaloxoneGivenTitle,
+      recipientLabel: 'Family / Support Network',
+      defaultNumber: '',
+      text: t.scriptNaloxoneGivenText,
+      instructions: [
+        'Stay with person until paramedics arrive.',
+        'Keep airway clear and perform rescue breathing if trained.',
+        'Medical evaluation is essential as Naloxone wears off in 30-90 mins.'
+      ]
+    }
+  ];
+
+  const currentScripts = activeTab === 'for_me' ? getForMeScripts() : getForCaregiverScripts();
   const activeScript = currentScripts.find(s => s.id === selectedScriptId) || currentScripts[0];
 
   const getRecipientPhone = () => {
@@ -106,10 +108,10 @@ export const EmergencyScriptsSection: React.FC<EmergencyScriptsProps> = ({ conta
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <span className="text-xs font-semibold tracking-wider text-indigo-400 uppercase flex items-center gap-1.5 mb-1">
-            <FileText className="w-3.5 h-3.5" /> Action 2 • 1-Tap Emergency Scripts
+            <FileText className="w-3.5 h-3.5" /> {t.scriptsTag}
           </span>
           <h2 className="text-xl sm:text-2xl font-bold text-slate-100 tracking-tight">
-            Ready-to-Send SMS & Guidance
+            {t.scriptsHeading}
           </h2>
         </div>
 
@@ -118,7 +120,7 @@ export const EmergencyScriptsSection: React.FC<EmergencyScriptsProps> = ({ conta
           <button
             onClick={() => {
               setActiveTab('for_me');
-              setSelectedScriptId(FOR_ME_SCRIPTS[0].id);
+              setSelectedScriptId('sponsor_craving');
             }}
             className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl flex items-center justify-center gap-2 transition-all ${
               activeTab === 'for_me'
@@ -126,12 +128,12 @@ export const EmergencyScriptsSection: React.FC<EmergencyScriptsProps> = ({ conta
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <UserCheck className="w-4 h-4" /> For Me (Sponsor/988)
+            <UserCheck className="w-4 h-4" /> {t.forMeTab}
           </button>
           <button
             onClick={() => {
               setActiveTab('for_caregiver');
-              setSelectedScriptId(FOR_CAREGIVER_SCRIPTS[0].id);
+              setSelectedScriptId('overdose_alert');
             }}
             className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl flex items-center justify-center gap-2 transition-all ${
               activeTab === 'for_caregiver'
@@ -139,7 +141,7 @@ export const EmergencyScriptsSection: React.FC<EmergencyScriptsProps> = ({ conta
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <HeartPulse className="w-4 h-4" /> For Caregiver (Naloxone)
+            <HeartPulse className="w-4 h-4" /> {t.forCaregiverTab}
           </button>
         </div>
       </div>
@@ -173,13 +175,13 @@ export const EmergencyScriptsSection: React.FC<EmergencyScriptsProps> = ({ conta
           <div className="flex items-center gap-2">
             <ShieldAlert className={`w-4 h-4 ${activeTab === 'for_me' ? 'text-sky-400' : 'text-rose-400'}`} />
             <span className="text-xs font-semibold text-slate-300">
-              Recipient: <span className="text-white font-bold">{getRecipientPhone() ? `${activeScript.recipientLabel} (${getRecipientPhone()})` : activeScript.recipientLabel}</span>
+              {t.recipientLabel}: <span className="text-white font-bold">{getRecipientPhone() ? `${activeScript.recipientLabel} (${getRecipientPhone()})` : activeScript.recipientLabel}</span>
             </span>
           </div>
 
           {copiedId === activeScript.id && (
             <span className="text-xs font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2.5 py-1 rounded-full flex items-center gap-1 animate-pulse">
-              <Check className="w-3.5 h-3.5" /> Auto-Copied to Clipboard!
+              <Check className="w-3.5 h-3.5" /> {t.autoCopied}
             </span>
           )}
         </div>
@@ -198,12 +200,12 @@ export const EmergencyScriptsSection: React.FC<EmergencyScriptsProps> = ({ conta
             {copiedId === activeScript.id ? (
               <>
                 <Check className="w-4 h-4 text-emerald-400" />
-                <span>Copied!</span>
+                <span>{t.copied}</span>
               </>
             ) : (
               <>
                 <Copy className="w-4 h-4 text-sky-400" />
-                <span>1-Tap Copy Text</span>
+                <span>{t.copyText}</span>
               </>
             )}
           </button>
@@ -218,7 +220,7 @@ export const EmergencyScriptsSection: React.FC<EmergencyScriptsProps> = ({ conta
             }`}
           >
             <Send className="w-4 h-4" />
-            <span>1-Tap Send SMS</span>
+            <span>{t.sendSms}</span>
           </a>
         </div>
 
@@ -226,7 +228,7 @@ export const EmergencyScriptsSection: React.FC<EmergencyScriptsProps> = ({ conta
         <div className="mt-4 pt-4 border-t border-slate-800/80">
           <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-            Step-by-Step Action Instructions
+            {t.stepByStepTitle}
           </h4>
 
           <ul className="space-y-2">

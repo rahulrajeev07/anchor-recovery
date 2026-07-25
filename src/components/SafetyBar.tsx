@@ -1,7 +1,12 @@
 import React from 'react';
 import { Phone, MessageSquare, AlertOctagon, HeartHandshake } from 'lucide-react';
+import { Translations } from '../utils/translations';
 
-export const SafetyBar: React.FC = () => {
+interface SafetyBarProps {
+  t: Translations;
+}
+
+export const SafetyBar: React.FC<SafetyBarProps> = ({ t }) => {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 border-t-2 border-rose-600/80 backdrop-blur-xl px-4 py-3 shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.8)]">
       <div className="max-w-4xl mx-auto flex flex-col xs:flex-row items-center justify-between gap-2.5">
@@ -13,7 +18,7 @@ export const SafetyBar: React.FC = () => {
           aria-label="Call 911 Emergency"
         >
           <AlertOctagon className="w-6 h-6 animate-pulse" />
-          <span>CALL 911 EMERGENCY</span>
+          <span>{t.call911}</span>
         </a>
 
         {/* 988 Crisis Lifeline Button */}
@@ -23,7 +28,7 @@ export const SafetyBar: React.FC = () => {
           aria-label="Call 988 Crisis Lifeline"
         >
           <Phone className="w-5 h-5" />
-          <span>CALL 988 CRISIS LINE</span>
+          <span>{t.call988}</span>
         </a>
 
         {/* Secondary Quick Text 988 & SAMHSA for Desktop/Tablet */}
@@ -34,7 +39,7 @@ export const SafetyBar: React.FC = () => {
             title="Text 988 Crisis Line"
           >
             <MessageSquare className="w-4 h-4" />
-            <span>Text 988</span>
+            <span>{t.text988}</span>
           </a>
 
           <a
@@ -43,7 +48,7 @@ export const SafetyBar: React.FC = () => {
             title="SAMHSA Substance Abuse Helpline 1-800-662-4357"
           >
             <HeartHandshake className="w-4 h-4" />
-            <span>SAMHSA 24/7</span>
+            <span>{t.samhsa}</span>
           </a>
         </div>
 

@@ -1,59 +1,59 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mic, Volume2, Play, Square, RefreshCw, Sparkles, Heart, Waves } from 'lucide-react';
+import { Mic, Volume2, Play, Square, Sparkles, Waves } from 'lucide-react';
 import { playCalmSynthTone, stopCalmSynth, speakGroundingPrompt, stopSpeech } from '../utils/audioSynth';
 import { BreathingPhase, GroundingTechnique } from '../types';
-
-const TECHNIQUES: GroundingTechnique[] = [
-  {
-    id: '478',
-    name: '4-7-8 Calm Breath',
-    inhaleSec: 4,
-    holdSec: 7,
-    exhaleSec: 8,
-    pauseSec: 1,
-    defaultPrompt: 'Take a deep breath. Focus on 3 things you can feel around you right now. You are safe.',
-  },
-  {
-    id: '54321',
-    name: '5-4-3-2-1 Grounding',
-    inhaleSec: 5,
-    holdSec: 5,
-    exhaleSec: 5,
-    pauseSec: 2,
-    defaultPrompt: 'Look around. Name 5 things you can see, 4 you can touch, and feel your feet firmly on the ground.',
-  },
-  {
-    id: 'box',
-    name: 'Box Breathing 4x4',
-    inhaleSec: 4,
-    holdSec: 4,
-    exhaleSec: 4,
-    pauseSec: 4,
-    defaultPrompt: 'Breathe in slowly. Hold steady. Let it out slowly. Feel yourself anchored in this moment.',
-  },
-];
+import { Translations } from '../utils/translations';
 
 interface DeescalationProps {
   isMuted: boolean;
+  t: Translations;
   onTriggerAlert?: () => void;
 }
 
-export const DeescalationSection: React.FC<DeescalationProps> = ({ isMuted }) => {
-  const [selectedTech, setSelectedTech] = useState<GroundingTechnique>(TECHNIQUES[0]);
+export const DeescalationSection: React.FC<DeescalationProps> = ({ isMuted, t }) => {
+  const getTechniques = (): GroundingTechnique[] => [
+    {
+      id: '478',
+      name: '4-7-8 Calm Breath',
+      inhaleSec: 4,
+      holdSec: 7,
+      exhaleSec: 8,
+      pauseSec: 1,
+      defaultPrompt: t.tech478Prompt,
+    },
+    {
+      id: '54321',
+      name: '5-4-3-2-1 Grounding',
+      inhaleSec: 5,
+      holdSec: 5,
+      exhaleSec: 5,
+      pauseSec: 2,
+      defaultPrompt: t.tech54321Prompt,
+    },
+    {
+      id: 'box',
+      name: 'Box Breathing 4x4',
+      inhaleSec: 4,
+      holdSec: 4,
+      exhaleSec: 4,
+      pauseSec: 4,
+      defaultPrompt: t.techBoxPrompt,
+    },
+  ];
+
+  const techniques = getTechniques();
+  const [selectedTechId, setSelectedTechId] = useState<string>('478');
+  const selectedTech = techniques.find(tech => tech.id === selectedTechId) || techniques[0];
+
   const [isActive, setIsActive] = useState(false);
   const [phase, setPhase] = useState<BreathingPhase>('idle');
   const [secondsLeft, setSecondsLeft] = useState(0);
-  const [currentPrompt, setCurrentPrompt] = useState<string>(TECHNIQUES[0].defaultPrompt);
   const [cycleCount, setCycleCount] = useState(0);
   const [isHoldingToSpeak, setIsHoldingToSpeak] = useState(false);
 
+  const currentPrompt = selectedTech.defaultPrompt;
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Update prompt when technique changes
-  useEffect(() => {
-    setCurrentPrompt(selectedTech.defaultPrompt);
-  }, [selectedTech]);
 
   // Main breathing timer loop
   useEffect(() => {
@@ -168,13 +168,13 @@ export const DeescalationSection: React.FC<DeescalationProps> = ({ isMuted }) =>
   const getPhaseInstruction = () => {
     switch (phase) {
       case 'inhale':
-        return 'Breathe In Deeply...';
+        return t.breatheIn;
       case 'hold':
-        return 'Hold Your Breath Gently...';
+        return t.holdGently;
       case 'exhale':
-        return 'Release & Breathe Out...';
+        return t.releaseExhale;
       default:
-        return 'Tap or Hold for De-escalation';
+        return t.tapOrHold;
     }
   };
 
@@ -188,27 +188,27 @@ export const DeescalationSection: React.FC<DeescalationProps> = ({ isMuted }) =>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <span className="text-xs font-semibold tracking-wider text-sky-400 uppercase flex items-center gap-1.5 mb-1">
-            <Sparkles className="w-3.5 h-3.5" /> Action 1 • Zero-Typing Grounding
+            <Sparkles className="w-3.5 h-3.5" /> {t.deescalationTag}
           </span>
           <h2 className="text-xl sm:text-2xl font-bold text-slate-100 tracking-tight">
-            Hold to Speak / Tap for De-escalation
+            {t.holdToSpeakHeading}
           </h2>
         </div>
 
         {/* Technique Switcher Pills */}
         <div className="flex items-center gap-1.5 bg-slate-950/80 p-1 rounded-2xl border border-slate-800 self-start sm:self-auto">
-          {TECHNIQUES.map((tech) => (
+          {techniques.map((tech) => (
             <button
               key={tech.id}
               onClick={() => {
-                setSelectedTech(tech);
+                setSelectedTechId(tech.id);
                 if (isActive) {
                   setIsActive(false);
                   setTimeout(() => setIsActive(true), 100);
                 }
               }}
               className={`px-2.5 py-1.5 text-xs font-medium rounded-xl transition-all ${
-                selectedTech.id === tech.id
+                selectedTechId === tech.id
                   ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
               }`}
@@ -324,7 +324,7 @@ export const DeescalationSection: React.FC<DeescalationProps> = ({ isMuted }) =>
           <div className="flex items-center justify-center gap-2 mb-1">
             <Waves className="w-4 h-4 text-sky-400 animate-pulse" />
             <span className="text-xs font-semibold text-sky-400 tracking-wide uppercase">
-              Audio Grounding Prompt
+              {t.audioGroundingLabel}
             </span>
           </div>
           <p className="text-base sm:text-lg font-medium text-slate-100 italic leading-relaxed max-w-xl mx-auto">
@@ -336,7 +336,7 @@ export const DeescalationSection: React.FC<DeescalationProps> = ({ isMuted }) =>
               onClick={() => speakGroundingPrompt(currentPrompt)}
               className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-300 rounded-xl text-xs font-medium flex items-center gap-1.5 border border-slate-700 transition-colors"
             >
-              <Volume2 className="w-3.5 h-3.5" /> Replay Voice Prompt
+              <Volume2 className="w-3.5 h-3.5" /> {t.replayVoice}
             </button>
             <button
               onClick={handleStartDeescalation}
@@ -347,7 +347,7 @@ export const DeescalationSection: React.FC<DeescalationProps> = ({ isMuted }) =>
               }`}
             >
               {isActive ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-              {isActive ? 'Stop Exercise' : 'Start 4-7-8 Loop'}
+              {isActive ? t.stopExercise : t.start478Loop}
             </button>
           </div>
         </motion.div>
