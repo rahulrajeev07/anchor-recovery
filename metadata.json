@@ -1,0 +1,6 @@
+{
+  "name": "Anchor",
+  "description": "Zero-typing crisis intervention platform for substance use disorder de-escalation, emergency script generation, and multimodal medication/environment analysis.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
