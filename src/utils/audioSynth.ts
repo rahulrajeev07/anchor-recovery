@@ -7,6 +7,8 @@ let activeGain: GainNode | null = null;
 
 export function playCalmSynthTone(frequency = 174, durationMs = 4000) {
   try {
+    if (typeof window === 'undefined') return;
+
     if (!audioCtx) {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       if (AudioCtx) {
@@ -73,7 +75,7 @@ export function stopCalmSynth() {
 }
 
 export function speakGroundingPrompt(text: string, onEnd?: () => void) {
-  if (!('speechSynthesis' in window)) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     if (onEnd) onEnd();
     return;
   }
@@ -104,7 +106,7 @@ export function speakGroundingPrompt(text: string, onEnd?: () => void) {
 }
 
 export function stopSpeech() {
-  if ('speechSynthesis' in window) {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
   stopCalmSynth();
